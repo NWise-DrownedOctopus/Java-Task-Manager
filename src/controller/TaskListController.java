@@ -29,9 +29,10 @@ public class TaskListController {
      * Creates a controller for the task list screen.
      *
      * @param taskListView task list screen managed by this controller
-     * @param currentUser user currently shown in the header
+     * @param currentUser  user currently shown in the header
      */
-    public TaskListController(ReadTaskListView taskListView, User currentUser,UserService userService, TaskService taskService) {
+    public TaskListController(ReadTaskListView taskListView, User currentUser, UserService userService,
+            TaskService taskService) {
         this.taskListView = taskListView;
         this.currentUser = currentUser;
         this.userService = userService;
@@ -49,7 +50,7 @@ public class TaskListController {
     }
 
     private void loadTasks() {
-        List<Task> tasks = taskService.getTasksForUser(currentUser.getId(), 0);
+        List<Task> tasks = taskService.getTasksForUser(currentUser.getId());
 
         List<Object[]> rows = new ArrayList<Object[]>();
         for (Task task : tasks) {
@@ -106,16 +107,17 @@ public class TaskListController {
             return;
         }
 
-        // showInfo("Task form is valid. Insert into tb_task will be added later.", "New Task");
+        // showInfo("Task form is valid. Insert into tb_task will be added later.", "New
+        // Task");
 
-        // save the task into the database 
+        // save the task into the database
         try {
             taskService.createTask(
-                currentUser.getId(),
-                dialog.getTitle(),
-                dialog.getTaskDescription(),
-                dialog.getDueDateText(),
-                dialog.getSelectedPriority());
+                    currentUser.getId(),
+                    dialog.getTaskTitle(),
+                    dialog.getTaskDescription(),
+                    dialog.getDueDateText(),
+                    dialog.getSelectedPriority());
 
             showInfo("Task added successfully", "New Task Success");
         } catch (IllegalArgumentException ex) {
@@ -126,18 +128,27 @@ public class TaskListController {
     /**
      * Requires a selected row before an edit action can continue.
      */
+    // AFTER
     public void onEditButtonClick() {
         if (!hasSelectedTask()) {
             showWarning("Select a task to edit.", "Edit Task");
             return;
         }
 
-        CreateUpdateTaskView dialog = new CreateUpdateTaskView(taskListView, "Edit Task");
+        // Fetch the task FIRST so we can pre-populate the dialog
+        Task selectedTask = taskService.getTaskForUser(currentUser.getId(), getSelectedTaskId());
+
+        CreateUpdateTaskView dialog = new CreateUpdateTaskView(
+                taskListView,
+                "Edit Task",
+                selectedTask.getTitle(),
+                selectedTask.getDescription(),
+                selectedTask.getDueDateDisplay(),
+                selectedTask.getPriority());
         dialog.setVisible(true);
 
-        if (!dialog.isSaved()) {
+        if (!dialog.isSaved())
             return;
-        }
 
         if (dialog.getTaskTitle().isBlank()) {
             showWarning("Please enter a task title.", "Edit Task");
@@ -150,18 +161,17 @@ public class TaskListController {
         }
 
         try {
-            //CreateUpdateTaskView dialog = new CreateUpdateTaskView(taskListView, "New Task");
-
-            Task selectedTask = taskService.getTaskForUser(currentUser.getId(), getSelectedTaskId());
             taskService.updateTaskDetails(
-                currentUser.getId(),
-                selectedTask.getId(),
-                dialog.getTitle(),
-                dialog.getTaskDescription(),
-                dialog.getDueDateText(),
-                dialog.getSelectedPriority());
-        } catch (Exception e) {
-            // TODO: handle exception
+                    currentUser.getId(),
+                    selectedTask.getId(),
+                    dialog.getTaskTitle(),
+                    dialog.getTaskDescription(),
+                    dialog.getDueDateText(),
+                    dialog.getSelectedPriority());
+            showInfo("Task updated successfully.", "Edit Task");
+            loadTasks();
+        } catch (IllegalArgumentException ex) {
+            showWarning(ex.getMessage(), "Edit Task Error");
         }
     }
 
@@ -204,8 +214,6 @@ public class TaskListController {
         } catch (Exception e) {
             showWarning("Task delete error", "Error");
         }
-        
-        showInfo("Delete clicked. Delete from tb_task will be added later.", "Delete Task");
     }
 
     /**
@@ -256,7 +264,7 @@ public class TaskListController {
      * Shows a standard information dialog.
      *
      * @param message message to display
-     * @param title dialog title
+     * @param title   dialog title
      */
     private void showInfo(String message, String title) {
         JOptionPane.showMessageDialog(taskListView, message, title, JOptionPane.INFORMATION_MESSAGE);
@@ -264,7 +272,7 @@ public class TaskListController {
 
     private int getSelectedTaskId() {
         int selectedTaskId = taskListView.getSelectedTaskId();
-        if(selectedTaskId < 0) {
+        if (selectedTaskId < 0) {
             showWarning("No Task Selected", "Select Task");
             return -1;
         }
@@ -275,7 +283,7 @@ public class TaskListController {
      * Shows a standard warning dialog.
      *
      * @param message message to display
-     * @param title dialog title
+     * @param title   dialog title
      */
     private void showWarning(String message, String title) {
         JOptionPane.showMessageDialog(taskListView, message, title, JOptionPane.WARNING_MESSAGE);

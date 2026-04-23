@@ -77,17 +77,13 @@ public class TaskService {
         return task;
     }
 
-    public List<Task> getTasksForUser(int userId, int taskId) {
-        Task task = taskDao.readOneTaskByUser(userId, taskId);
-        if (task==null) {
-            throw new IllegalArgumentException("The selected task not found");
-        }
+    public List<Task> getTasksForUser(int userId) {
         return taskDao.readByUser(userId);
     }    
 
     public void deleteTask(int userId, int taskId) {
         
-        getTasksForUser(userId, taskId);
+        getTasksForUser(userId);
 
         boolean deleted = taskDao.deleteTask(taskId, userId);
 

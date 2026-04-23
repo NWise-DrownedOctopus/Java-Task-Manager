@@ -28,7 +28,7 @@ public class TaskDao {
 
     public int createTask(Task task) {
 
-        String query = "INSERT INTO tb_task (user_id, title, description, due_date, status, priority, created_at)"
+        String query = "INSERT INTO tb_task (user_id, title, description, due_date, status, priority)"
                 + "VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = connection.getConnection();
